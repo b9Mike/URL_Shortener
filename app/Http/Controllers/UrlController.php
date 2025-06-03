@@ -49,4 +49,43 @@ class UrlController extends Controller
             'expires_at' => $url->expires_at
         ], 201);
     }
+
+    public function getAllUrls(){
+        $urls = Url::all()->map(function ($url) {
+            $url->short_url = url('/') . '/' . $url->short_code;
+            $url->is_active = !$url->expires_at || now()->lessThan($url->expires_at);
+            return $url;
+        });
+        return response()->json($urls);
+    }
+
+    public function reactivateUrlByICode($code){
+        $url = Url::where("short_code", $code)->first();
+        if(!$url){
+            return response()->json(['error' => "Not found url"], 404);
+        }
+        $url->expires_at = now()->addDays(7);
+        $url->save();
+
+        return response()->json([
+            'message' => 'URL successfully reactivated',
+            'expires_at' => $url->expires_at,
+        ], 200);
+
+    }
+
+    public function deactivateUrlByICode($code){
+        $url = Url::where("short_code", $code)->first();
+        if(!$url){
+            return response()->json(['error' => "Not found url"], 404);
+        }
+        $url->expires_at = now()->subSecond();
+        $url->save();
+
+        return response()->json([
+            'message' => 'URL successfully deactivated',
+            'expires_at' => $url->expires_at,
+        ], 200);
+
+    }
 }
