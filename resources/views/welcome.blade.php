@@ -11,9 +11,39 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous">
     </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", sans-serif;
+        }
+
+        html,
+        body {
+            background: linear-gradient(to right, #c5acc5, #bab1d2, #b0b5e3);
+        }
+
+        
+    </style>
 </head>
 
 <body class="bg-light">
+
+    <nav class="navbar shadow-sm" style="background-color: #ffffff;">
+
+        <div class="container-fluid">
+            <a class="navbar-brand">Navbar</a>
+            <div class="d-flex ms-auto">
+                <a href="{{ route('login') }}" class="btn btn-outline-primary me-2">Iniciar sesión</a>
+                <a href="{{ route('login') }}" class="btn btn-outline-success">Registrar</a>
+            </div>
+
+        </div>
+    </nav>
+
     <div class="container my-5">
         <!-- Card superior -->
         <div class="row mb-4">
@@ -27,7 +57,7 @@
                             <input type="url" class="form-control" id="original_url" name="original_url" required
                                 placeholder="https://ejemplo.com">
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Acortar</button>
+                        <button type="submit" class="btn w-100" style="background-color: #b67ab8; color: white;">Acortar</button>
                     </form>
 
                     <div id="resultado" class="mt-3 text-center text-success" style="display:none;"></div>
@@ -65,7 +95,8 @@
                                 </thead>
                                 <tbody id="urlTableBody" class="text-gray-600 fw-semibold">
                                     <tr>
-                                        <td valign="top" colspan="4" class="text-center dataTables_empty">Cargando...</td>
+                                        <td valign="top" colspan="4" class="text-center dataTables_empty">
+                                            Cargando...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -78,7 +109,7 @@
             <div class="col-md-5 mb-4">
                 <div class="card p-4 shadow">
                     <h5 class="card-title text-center">Estadísticas</h5>
-                    <p>Aquí puedes mostrar visitas totales, clics, etc.</p>
+                    <p>Aquí podria mostrar visitas totales, clics, etc.</p>
                     {{-- begin::Menu --}}
                     <div class="dropdown">
                         <a class="btn btn-primary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
@@ -176,8 +207,7 @@
             });
         }
 
-
-        //reactivar url
+        //reactivar o desactivar url
         document.getElementById('urlTableBody').addEventListener('click', function(e) {
             if (e.target.classList.contains('reactivar-btn')) {
                 e.preventDefault();

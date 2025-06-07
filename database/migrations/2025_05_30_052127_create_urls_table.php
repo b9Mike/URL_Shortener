@@ -17,6 +17,12 @@ return new class extends Migration
             $table->string('short_code')->unique();
             $table->unsignedBigInteger('visits')->default(0);
             $table->timestamp('expires_at')->nullable();
+
+            $table->foreignId('user_id')
+                ->nullable()
+                ->constrained()
+                ->onDelete('set null');
+
             $table->timestamps();
         });
     }
