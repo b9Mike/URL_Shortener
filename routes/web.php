@@ -11,3 +11,6 @@ Route::get('/', function () {
 Route::get('/login', function () {
     return view('auth.login'); 
 })->name('login');
+
+Route::get("{code}", [UrlController::class, "redirectToOriginalUrl"])->name("url.redirect");
+Route::post("/short-url", [UrlController::class, "createShortUrl"])->name("url.short");

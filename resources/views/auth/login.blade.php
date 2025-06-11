@@ -247,17 +247,17 @@
             <div class="form-inner">
                 <form action="#" class="login">
                     <div class="field">
-                        <input type="text" placeholder="Correo electrónico" required>
+                        <input id="login-email" type="text" placeholder="Correo electrónico" required>
                     </div>
                     <div class="field">
-                        <input type="password" placeholder="Contraseña" required>
+                        <input id="login-password" type="password" placeholder="Contraseña" required>
                     </div>
                     <div class="pass-link">
                         <a href="#">Bienvenido</a>
                     </div>
                     <div class="field btn">
                         <div class="btn-layer"></div>
-                        <input type="submit" value="Iniciar">
+                        <input id="btn-login" type="submit" value="Ingresar">
                     </div>
                     <div class="signup-link">
                         ¿No estas registrado? <a href="">Registrate ahora</a>
@@ -347,6 +347,52 @@
                 });
 
         });
+
+        //login
+        document.getElementById("btn-login").addEventListener("click", async (e) =>{
+            e.preventDefault();
+
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch("/api/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("Error:", errorData);
+                    alert(errorData.message || "Credenciales inválidas");
+                    return;
+                }
+
+                const data = await response.json();
+                console.log("Token recibido:", data.token);
+
+                // Guardar el token en localStorage para futuras peticiones
+                localStorage.setItem("token", data.token);
+
+                // Redirigir o mostrar mensaje
+                alert("Inicio de sesión exitoso");
+                window.location.href = "/"; // Si quieres redirigir
+
+            } catch (error) {
+                console.error("Error de red:", error);
+                alert("Ocurrió un error al iniciar sesión");
+            }
+
+        });
+
+
     </script>
 </body>
 

@@ -12,7 +12,6 @@ Route::post("/login", [AuthController::class, "login"])->name("user.login");
 Route::post("/register", [UserController::class, "createUser"])->name("user.register");
 
 //Rutas privada
-
 Route::middleware([IsUserAuth::class])->group(function () {
 
     Route::controller(AuthController::class)->group(function () {
@@ -23,11 +22,10 @@ Route::middleware([IsUserAuth::class])->group(function () {
     Route::get('/test-api', function () {
         return response()->json(['message' => 'API funcionando correctamente']);
     });
-
+    Route::post("/short-url", [UrlController::class, "createShortUrl"])->name("url.short.api");
     Route::get("/urls", [UrlController::class, "getAllUrls"])->name("url.urls");
+    Route::get("/urls-user", [UrlController::class, "getAllUrlsByUserId"])->name("url.urls.user");
     Route::patch("/reactivate-url/{code}", [UrlController::class, "reactivateUrlByICode"])->name("url.reactivate");
     Route::patch("/deactivate-url/{code}", [UrlController::class, "deactivateUrlByICode"])->name("url.deactivate");
-    Route::post("/short-url", [UrlController::class, "createShortUrl"])->name("url.short");
-    Route::get("{code}", [UrlController::class, "redirectToOriginalUrl"])->name("url.redirect");
     Route::get("/stats/{code}", [UrlController::class, "statsShortUrl"])->name("url.stats");
 });

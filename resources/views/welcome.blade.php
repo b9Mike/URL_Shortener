@@ -26,6 +26,10 @@
             background: linear-gradient(to right, #c5acc5, #bab1d2, #b0b5e3);
         }
 
+        .input-url{
+            height: 50px;
+        }
+
         
     </style>
 </head>
@@ -37,8 +41,9 @@
         <div class="container-fluid">
             <a class="navbar-brand">Navbar</a>
             <div class="d-flex ms-auto">
-                <a href="{{ route('login') }}" class="btn btn-outline-primary me-2">Iniciar sesión</a>
-                <a href="{{ route('login') }}" class="btn btn-outline-success">Registrar</a>
+                <a href="{{ route ('login') }}" id="btn-login" class="btn btn-outline-primary me-2">Iniciar sesión</a>
+                <a href="{{ route ('login') }}" id="btn-register" class="btn btn-outline-success">Registrarse</a>
+                <a href="#" id="btn-logout" class="btn btn-outline-danger d-none">Cerrar sesión</a>
             </div>
 
         </div>
@@ -49,12 +54,12 @@
         <div class="row mb-4">
             <div class="col-12 mx-auto">
                 <div class="card p-4 shadow">
-                    <h4 class="card-title text-center">Acortador de URL</h4>
+                    <h1 class="card-title text-center">Acortador de URL</h1>
 
                     <form action="" method="" id="urlForm">
                         <div class="mb-3">
                             <label for="original_url" class="form-label">Ingresa tu URL</label>
-                            <input type="url" class="form-control" id="original_url" name="original_url" required
+                            <input type="url" class="form-control input-url" id="original_url" name="original_url" required
                                 placeholder="https://ejemplo.com">
                         </div>
                         <button type="submit" class="btn w-100" style="background-color: #b67ab8; color: white;">Acortar</button>
@@ -67,6 +72,7 @@
 
         <!-- Fila con dos cards -->
         <div class="row">
+            <!-- Url del usuario -->
             <div class="col-md-7 mb-4">
                 <div class="card p-4 shadow">
                     <h5 class="card-title text-center">URLs Existentes</h5>
@@ -130,95 +136,157 @@
 
 
     <script>
+        //botones cerrar sesion
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem("token");
+
+            if (token) {
+                document.getElementById("btn-login").classList.add("d-none");
+                document.getElementById("btn-register").classList.add("d-none");
+                document.getElementById("btn-logout").classList.remove("d-none");
+            }
+
+            document.getElementById("btn-logout").addEventListener("click", async () => {
+                try {
+                    await fetch("/api/logout", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Accept": "application/json"
+                        }
+                    });
+                    localStorage.removeItem("token");
+                    location.reload(); // o redirige
+                } catch (e) {
+                    alert("Error cerrando sesión");
+                }
+            });
+        });
         // llamada post para generar la url
         document.getElementById('urlForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-
+            const token = localStorage.getItem("token");
             const url = document.getElementById('original_url').value;
 
             try {
-                const res = await fetch('{{ route('url.short') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        original_url: url
-                    }),
-                });
+                const headers = {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                };
+
+                let res;
+                // Si hay token JWT, usa Authorization y omite CSRF
+                if (token) {
+                    headers["Authorization"] = "Bearer " + token;
+                    res = await fetch('{{ route('url.short.api') }}', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({
+                            original_url: url
+                        }),
+                    });
+                } else {
+                    // Si no hay token, la sesión es web y necesita CSRF
+                    headers["X-CSRF-TOKEN"] = '{{ csrf_token() }}';
+
+                    res = await fetch('{{ route('url.short') }}', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({
+                            original_url: url
+                        }),
+                    });
+                }
 
                 const data = await res.json();
+
                 document.getElementById('resultado').style.display = 'block';
                 document.getElementById('resultado').innerHTML =
                     `Tu URL acortada es: <a href="${data.short_url}" target="_blank">${data.short_url}</a>`;
+
             } catch (error) {
                 console.error('Ocurrió un error:', error);
-
             }
-
         });
 
         //traer urls
         async function cargarUrls() {
-            const res = await fetch("{{ route('url.urls') }}");
-            const urls = await res.json();
+            const token = localStorage.getItem("token");
 
             const tableBody = document.getElementById("urlTableBody");
             tableBody.innerHTML = ""; // Limpiar antes de cargar
 
-            if (urls.length === 0) {
+            if (token) {
+                const res = await fetch("{{ route('url.urls.user') }}", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Accept": "application/json",
+                    },
+                });
+                const urls = await res.json();
+
+                if (urls.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="text-center">No se han encontrado registros</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                urls.forEach((url, index) => {
+                    const estadoBadge = url.is_active ?
+                        `<span class="badge bg-success">Activo</span>` :
+                        `<span class="badge bg-danger">Desactivado</span>`;
+
+                    const row = document.createElement("tr");
+
+                    row.innerHTML = `
+                        <td>
+                            <a href="${url.short_url}" target="_blank">${url.short_url}</a>
+                        </td>
+                        <td>${estadoBadge}</td>
+                        <td>${url.visits}</td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-primary dropdown-toggle" type="button" id="dropdownMenu${index}" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Acciones
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenu${index}">
+                                    <li><a class="dropdown-item reactivar-btn" href="#" data-code="${url.short_code}">Reactivar</a></li>
+                                    <li><a class="dropdown-item deactivate-btn" href="#" data-code="${url.short_code}">Desactivar</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
+            }else{
                 tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="text-center">No se han encontrado registros</td>
-                    </tr>
-                `;
-                return;
+                        <tr>
+                            <td colspan="4" class="text-center">Inicia sesión para ver tus urls</td>
+                        </tr>
+                    `;
+                    return;
             }
-
-            urls.forEach((url, index) => {
-                const estadoBadge = url.is_active ?
-                    `<span class="badge bg-success">Activo</span>` :
-                    `<span class="badge bg-danger">Desactivado</span>`;
-
-                const row = document.createElement("tr");
-
-                row.innerHTML = `
-                    <td>
-                        <a href="${url.short_url}" target="_blank">${url.short_url}</a>
-                    </td>
-                    <td>${estadoBadge}</td>
-                    <td>${url.visits}</td>
-                    <td class="text-end">
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-primary dropdown-toggle" type="button" id="dropdownMenu${index}" data-bs-toggle="dropdown" aria-expanded="false">
-                                Acciones
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="dropdownMenu${index}">
-                                <li><a class="dropdown-item reactivar-btn" href="#" data-code="${url.short_code}">Reactivar</a></li>
-                                <li><a class="dropdown-item deactivate-btn" href="#" data-code="${url.short_code}">Desactivar</a></li>
-                            </ul>
-                        </div>
-                    </td>
-                `;
-
-                tableBody.appendChild(row);
-            });
+            
         }
 
         //reactivar o desactivar url
         document.getElementById('urlTableBody').addEventListener('click', function(e) {
+            const token = localStorage.getItem("token");
             if (e.target.classList.contains('reactivar-btn')) {
                 e.preventDefault();
                 const code = e.target.getAttribute('data-code');
 
-                fetch(`/reactivate-url/${code}`, {
+                fetch(`api/reactivate-url/${code}`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            "Authorization": `Bearer ${token}`
                         }
                     })
                     .then(res => {
@@ -236,12 +304,12 @@
                 e.preventDefault();
                 const code = e.target.getAttribute("data-code");
 
-                fetch(`/deactivate-url/${code}`, {
+                fetch(`api/deactivate-url/${code}`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            "Authorization": `Bearer ${token}`
                         }
                     })
                     .then(res => {
@@ -258,6 +326,7 @@
             }
         });
 
+        
         // Cargar al iniciar
         cargarUrls();
     </script>

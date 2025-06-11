@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Url;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class UrlController extends Controller
@@ -12,12 +13,14 @@ class UrlController extends Controller
             'original_url' => "required"
         ]);
         $url = Url::where("original_url", $request->original_url)->first();
+        $user = Auth::user();
         if(!$url){
             $shortCode = Url::generateShortCode();
             $url = new Url();
             $url->original_url = $request->original_url;
             $url->short_code = $shortCode;
             $url->expires_at = now()->addMinutes(1);
+            $url->user_id = $user ? $user->id : null;
             $url->save();
         }
         return response()->json([
@@ -52,6 +55,16 @@ class UrlController extends Controller
 
     public function getAllUrls(){
         $urls = Url::all()->map(function ($url) {
+            $url->short_url = url('/') . '/' . $url->short_code;
+            $url->is_active = !$url->expires_at || now()->lessThan($url->expires_at);
+            return $url;
+        });
+        return response()->json($urls);
+    }
+
+    public function getAllUrlsByUserId(){
+        $user = Auth::user();
+        $urls = Url::where('user_id', $user->id)->get()->map(function ($url) {
             $url->short_url = url('/') . '/' . $url->short_code;
             $url->is_active = !$url->expires_at || now()->lessThan($url->expires_at);
             return $url;
