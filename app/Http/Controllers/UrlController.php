@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Url;
+use App\Models\UrlVisit;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -36,7 +37,15 @@ class UrlController extends Controller
         if ($url->expires_at && now()->greaterThan($url->expires_at)) {
             abort(410, "This URL has expired");
         }
+        
+        UrlVisit::create([
+            'url_id' => $url->id,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+
         $url->increment("visits");
+
         return redirect($url->original_url);
     }
 

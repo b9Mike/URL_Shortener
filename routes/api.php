@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UrlController;
+use App\Http\Controllers\UrlVisitController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\IsUserAuth;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 //Rutas publicas
 Route::post("/login", [AuthController::class, "login"])->name("user.login");
 Route::post("/register", [UserController::class, "createUser"])->name("user.register");
+Route::get("/url/{shortCode}/visits-per-month", [UrlVisitController::class, "visitsPerMonthByShortCode"]);
 
 //Rutas privada
 Route::middleware([IsUserAuth::class])->group(function () {

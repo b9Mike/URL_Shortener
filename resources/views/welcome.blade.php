@@ -32,6 +32,8 @@
 
         
     </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="bg-light">
@@ -115,19 +117,10 @@
             <div class="col-md-5 mb-4">
                 <div class="card p-4 shadow">
                     <h5 class="card-title text-center">Estadísticas</h5>
-                    <p>Aquí podria mostrar visitas totales, clics, etc.</p>
-                    {{-- begin::Menu --}}
-                    <div class="dropdown">
-                        <a class="btn btn-primary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            Acciones
-                        </a>
-
-                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                            <li><a class="dropdown-item" href="#">Reactivar</a></li>
-                        </ul>
+                    <p>Aquí se muestran las visitas de la URL</p>
+                    <div>
+                        <canvas id="myChart"></canvas>
                     </div>
-                    {{-- end::Menu --}}
                 </div>
             </div>
         </div>
@@ -136,6 +129,88 @@
 
 
     <script>
+        //grafica
+        let myChart;
+
+        function updateChart(labels, data, code) {
+            const ctx = document.getElementById('myChart').getContext("2d");
+
+            if (myChart) {
+                myChart.data.datasets[0].data = data;
+                myChart.options.plugins.title.text = `Visitas de ${code}`;
+                myChart.update();
+            } else {
+                myChart = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Visitas por mes',
+                            data: data,
+                            backgroundColor: 'rgba(182,122,184,0.3)',
+                            borderColor: 'rgb(182,122,184)',
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: `Visitas de ${code}`,
+                                font: {
+                                    size: 18
+                                }
+                            },
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        //seleccionar url para grafica
+        const tabla = document.getElementById('kt_table_users');
+        if (tabla) {
+            console.log('entro');
+            tabla.addEventListener('click', async function(e) {
+            const row = e.target.closest('tr');
+            if (!row) return;
+
+            const code = row.getAttribute('data-code');
+            if (!code) return;
+            
+            try {
+                const res = await fetch(`/api/url/${code}/visits-per-month`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+
+                const data = await res.json();
+
+                // Formatear datos para la gráfica
+                const labels = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+                const values = data.map(item => item.total);
+
+                // Actualizar la gráfica
+                updateChart(labels, values, code);
+            } catch (error) {
+                console.error("Error al obtener visitas:", error);
+            }
+        });
+        }
+
         //botones cerrar sesion
         document.addEventListener("DOMContentLoaded", () => {
             const token = localStorage.getItem("token");
@@ -162,6 +237,7 @@
                 }
             });
         });
+
         // llamada post para generar la url
         document.getElementById('urlForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -241,6 +317,7 @@
                         `<span class="badge bg-danger">Desactivado</span>`;
 
                     const row = document.createElement("tr");
+                    row.setAttribute('data-code', url.short_code);
 
                     row.innerHTML = `
                         <td>

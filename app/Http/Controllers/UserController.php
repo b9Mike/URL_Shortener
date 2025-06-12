@@ -12,7 +12,6 @@ class UserController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'role' => 'required|string|in:admin,user',
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|string|min:6|confirmed',
                 'profile_image' => 'nullable|string',
@@ -20,7 +19,7 @@ class UserController extends Controller
             // Crear el usuario
             User::create([
                 'name' => $validated['name'],
-                'role' => $validated['role'],
+                'role' => 'user',
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'profile_image' => $validated['profile_image'] ?? null,

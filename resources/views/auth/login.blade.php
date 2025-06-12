@@ -315,7 +315,7 @@
             const password = document.getElementById('register-password').value;
             const password2 = document.getElementById('register-confirm-password').value;
 
-            fetch(`/register`, {
+            fetch(`api/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

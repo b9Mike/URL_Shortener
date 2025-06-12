@@ -16,4 +16,9 @@ class Url extends Model
         }while(self::where('short_code', $code)->exists());
         return $code;
     }
+
+    public function visits(){
+        return $this->hasMany(UrlVisit::class);
+    }
+
 }
