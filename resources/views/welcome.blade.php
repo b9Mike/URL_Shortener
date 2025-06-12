@@ -129,6 +129,31 @@
 
 
     <script>
+        //funcion para fetch
+        async function secureFetch(url, options = {}) {
+            const token = localStorage.getItem("token");
+
+            if (token) {
+                options.headers = {
+                    ...options.headers,
+                    "Authorization": `Bearer ${token}`,
+                    "Accept": "application/json"
+                };
+            }
+
+            const res = await fetch(url, options);
+
+            if (res.status === 401) {
+                // El token expiró o no es válido
+                localStorage.removeItem("token");
+                alert("Tu sesión ha expirado. Por favor inicia sesión de nuevo.");
+                window.location.href = "/login"; // Redirige al login
+                return;
+            }
+
+            return res;
+        }
+
         //grafica
         let myChart;
 
@@ -182,33 +207,27 @@
         if (tabla) {
             console.log('entro');
             tabla.addEventListener('click', async function(e) {
-            const row = e.target.closest('tr');
-            if (!row) return;
+                const row = e.target.closest('tr');
+                if (!row) return;
 
-            const code = row.getAttribute('data-code');
-            if (!code) return;
-            
-            try {
-                const res = await fetch(`/api/url/${code}/visits-per-month`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                });
+                const code = row.getAttribute('data-code');
+                if (!code) return;
+                
+                try {
+                    const res = await secureFetch(`/api/url/${code}/visits-per-month`);
 
-                const data = await res.json();
+                    const data = await res.json();
 
-                // Formatear datos para la gráfica
-                const labels = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-                const values = data.map(item => item.total);
+                    // Formatear datos para la gráfica
+                    const labels = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+                    const values = data.map(item => item.total);
 
-                // Actualizar la gráfica
-                updateChart(labels, values, code);
-            } catch (error) {
-                console.error("Error al obtener visitas:", error);
-            }
-        });
+                    // Actualizar la gráfica
+                    updateChart(labels, values, code);
+                } catch (error) {
+                    console.error("Error al obtener visitas:", error);
+                }
+            });
         }
 
         //botones cerrar sesion
@@ -223,15 +242,13 @@
 
             document.getElementById("btn-logout").addEventListener("click", async () => {
                 try {
-                    await fetch("/api/logout", {
-                        method: "POST",
-                        headers: {
-                            "Authorization": `Bearer ${token}`,
-                            "Accept": "application/json"
-                        }
+                    await secureFetch("/api/logout", {
+                        method: "POST"
                     });
+
                     localStorage.removeItem("token");
                     location.reload(); // o redirige
+
                 } catch (e) {
                     alert("Error cerrando sesión");
                 }
@@ -293,14 +310,11 @@
             tableBody.innerHTML = ""; // Limpiar antes de cargar
 
             if (token) {
-                const res = await fetch("{{ route('url.urls.user') }}", {
-                    method: "GET",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Accept": "application/json",
-                    },
+                const res = await secureFetch("{{ route('url.urls.user') }}", {
+                    method: "GET"
                 });
                 const urls = await res.json();
+
 
                 if (urls.length === 0) {
                     tableBody.innerHTML = `
@@ -346,62 +360,51 @@
                             <td colspan="4" class="text-center">Inicia sesión para ver tus urls</td>
                         </tr>
                     `;
-                    return;
+                return;
             }
             
         }
 
         //reactivar o desactivar url
-        document.getElementById('urlTableBody').addEventListener('click', function(e) {
-            const token = localStorage.getItem("token");
+        document.getElementById('urlTableBody').addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            if (!e.target.classList.contains('reactivar-btn') && !e.target.classList.contains('deactivate-btn')) {
+                return;
+            }
+
+            const code = e.target.getAttribute('data-code');
+            if (!code) return;
+
+            let url = '';
+            let successMessage = '';
+
             if (e.target.classList.contains('reactivar-btn')) {
-                e.preventDefault();
-                const code = e.target.getAttribute('data-code');
+                url = `api/reactivate-url/${code}`;
+                successMessage = "URL reactivada con éxito";
+            } else if (e.target.classList.contains('deactivate-btn')) {
+                url = `api/deactivate-url/${code}`;
+                successMessage = "URL desactivada con éxito";
+            }
 
-                fetch(`api/reactivate-url/${code}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            "Authorization": `Bearer ${token}`
-                        }
-                    })
-                    .then(res => {
-                        if (!res.ok) throw new Error("Error al reactivar la URL");
-                        return res.json();
-                    })
-                    .then(data => {
-                        alert("URL reactivada con éxito");
-                        cargarUrls();
-                    })
-                    .catch(err => {
-                        alert("Hubo un error: " + err.message);
-                    });
-            } else if (e.target.classList.contains("deactivate-btn")) {
-                e.preventDefault();
-                const code = e.target.getAttribute("data-code");
+            try {
+                const res = await secureFetch(url, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-                fetch(`api/deactivate-url/${code}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            "Authorization": `Bearer ${token}`
-                        }
-                    })
-                    .then(res => {
-                        if (!res.ok) throw new Error("Error al desactivar la URL");
-                        return res.json();
-                    })
-                    .then(data => {
-                        alert("URL desactivada con éxito");
-                        cargarUrls();
-                    })
-                    .catch(err => {
-                        alert("Hubo un error: " + err.message);
-                    });
+                if (!res.ok) throw new Error("Error en la operación");
+
+                const data = await res.json();
+                alert(successMessage);
+                cargarUrls();
+            } catch (err) {
+                alert("Hubo un error: " + err.message);
             }
         });
+
 
         
         // Cargar al iniciar
