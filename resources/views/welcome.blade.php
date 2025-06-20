@@ -1,56 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>URL Shortener</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous">
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Poppins", sans-serif;
-        }
-
-        html,
-        body {
-            background: linear-gradient(to right, #c5acc5, #bab1d2, #b0b5e3);
-        }
-
-        .input-url{
-            height: 50px;
-        }
-
-        
-    </style>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-
-<body class="bg-light">
-
-    <nav class="navbar shadow-sm" style="background-color: #ffffff;">
-
-        <div class="container-fluid">
-            <a class="navbar-brand">Navbar</a>
-            <div class="d-flex ms-auto">
-                <a href="{{ route ('login') }}" id="btn-login" class="btn btn-outline-primary me-2">Iniciar sesión</a>
-                <a href="{{ route ('login') }}" id="btn-register" class="btn btn-outline-success">Registrarse</a>
-                <a href="#" id="btn-logout" class="btn btn-outline-danger d-none">Cerrar sesión</a>
-            </div>
-
-        </div>
-    </nav>
-
+@section('content')
     <div class="container my-5">
         <!-- Card superior -->
         <div class="row mb-4">
@@ -113,7 +63,7 @@
                 </div>
             </div>
 
-            {{-- estaduisticas --}}
+            {{-- estadisticas --}}
             <div class="col-md-5 mb-4">
                 <div class="card p-4 shadow">
                     <h5 class="card-title text-center">Estadísticas</h5>
@@ -125,9 +75,10 @@
             </div>
         </div>
     </div>
+@endsection
 
-
-
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         //funcion para fetch
         async function secureFetch(url, options = {}) {
@@ -206,20 +157,20 @@
         const tabla = document.getElementById('kt_table_users');
         if (tabla) {
             console.log('entro');
-            tabla.addEventListener('click', async function(e) {
+            tabla.addEventListener('click', async function (e) {
                 const row = e.target.closest('tr');
                 if (!row) return;
 
                 const code = row.getAttribute('data-code');
                 if (!code) return;
-                
+
                 try {
                     const res = await secureFetch(`/api/url/${code}/visits-per-month`);
 
                     const data = await res.json();
 
                     // Formatear datos para la gráfica
-                    const labels = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+                    const labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
                     const values = data.map(item => item.total);
 
                     // Actualizar la gráfica
@@ -230,33 +181,9 @@
             });
         }
 
-        //botones cerrar sesion
-        document.addEventListener("DOMContentLoaded", () => {
-            const token = localStorage.getItem("token");
-
-            if (token) {
-                document.getElementById("btn-login").classList.add("d-none");
-                document.getElementById("btn-register").classList.add("d-none");
-                document.getElementById("btn-logout").classList.remove("d-none");
-            }
-
-            document.getElementById("btn-logout").addEventListener("click", async () => {
-                try {
-                    await secureFetch("/api/logout", {
-                        method: "POST"
-                    });
-
-                    localStorage.removeItem("token");
-                    location.reload(); // o redirige
-
-                } catch (e) {
-                    alert("Error cerrando sesión");
-                }
-            });
-        });
 
         // llamada post para generar la url
-        document.getElementById('urlForm').addEventListener('submit', async function(e) {
+        document.getElementById('urlForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const token = localStorage.getItem("token");
             const url = document.getElementById('original_url').value;
@@ -271,7 +198,7 @@
                 // Si hay token JWT, usa Authorization y omite CSRF
                 if (token) {
                     headers["Authorization"] = "Bearer " + token;
-                    res = await fetch('{{ route('url.short.api') }}', {
+                    res = await fetch("{{ route('url.short.api') }}", {
                         method: 'POST',
                         headers: headers,
                         body: JSON.stringify({
@@ -282,7 +209,7 @@
                     // Si no hay token, la sesión es web y necesita CSRF
                     headers["X-CSRF-TOKEN"] = '{{ csrf_token() }}';
 
-                    res = await fetch('{{ route('url.short') }}', {
+                    res = await fetch("{{ route('url.short') }}", {
                         method: 'POST',
                         headers: headers,
                         body: JSON.stringify({
@@ -318,10 +245,10 @@
 
                 if (urls.length === 0) {
                     tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="4" class="text-center">No se han encontrado registros</td>
-                        </tr>
-                    `;
+                                <tr>
+                                    <td colspan="4" class="text-center">No se han encontrado registros</td>
+                                </tr>
+                            `;
                     return;
                 }
 
@@ -334,39 +261,39 @@
                     row.setAttribute('data-code', url.short_code);
 
                     row.innerHTML = `
-                        <td>
-                            <a href="${url.short_url}" target="_blank">${url.short_url}</a>
-                        </td>
-                        <td>${estadoBadge}</td>
-                        <td>${url.visits}</td>
-                        <td class="text-end">
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-primary dropdown-toggle" type="button" id="dropdownMenu${index}" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Acciones
-                                </button>
-                                <ul class="dropdown-menu" aria-labelledby="dropdownMenu${index}">
-                                    <li><a class="dropdown-item reactivar-btn" href="#" data-code="${url.short_code}">Reactivar</a></li>
-                                    <li><a class="dropdown-item deactivate-btn" href="#" data-code="${url.short_code}">Desactivar</a></li>
-                                </ul>
-                            </div>
-                        </td>
-                    `;
+                                <td>
+                                    <a href="${url.short_url}" target="_blank">${url.short_url}</a>
+                                </td>
+                                <td>${estadoBadge}</td>
+                                <td>${url.visits}</td>
+                                <td class="text-end">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-primary dropdown-toggle" type="button" id="dropdownMenu${index}" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Acciones
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu${index}">
+                                            <li><a class="dropdown-item reactivar-btn" href="#" data-code="${url.short_code}">Reactivar</a></li>
+                                            <li><a class="dropdown-item deactivate-btn" href="#" data-code="${url.short_code}">Desactivar</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            `;
 
                     tableBody.appendChild(row);
                 });
-            }else{
+            } else {
                 tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="4" class="text-center">Inicia sesión para ver tus urls</td>
-                        </tr>
-                    `;
+                                <tr>
+                                    <td colspan="4" class="text-center">Inicia sesión para ver tus urls</td>
+                                </tr>
+                            `;
                 return;
             }
-            
+
         }
 
         //reactivar o desactivar url
-        document.getElementById('urlTableBody').addEventListener('click', async function(e) {
+        document.getElementById('urlTableBody').addEventListener('click', async function (e) {
             e.preventDefault();
 
             if (!e.target.classList.contains('reactivar-btn') && !e.target.classList.contains('deactivate-btn')) {
@@ -405,12 +332,7 @@
             }
         });
 
-
-        
         // Cargar al iniciar
         cargarUrls();
     </script>
-
-</body>
-
-</html>
+@endpush
