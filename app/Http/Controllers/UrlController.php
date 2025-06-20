@@ -35,6 +35,11 @@ class UrlController extends Controller
             return response()->json(['error' => "Not found url"], 404);
         }
         if ($url->expires_at && now()->greaterThan($url->expires_at)) {
+            if($url->is_active == true){
+                $url->is_active = false;
+                $url->save();
+            }
+
             abort(410, "This URL has expired");
         }
         
@@ -49,6 +54,7 @@ class UrlController extends Controller
         return redirect($url->original_url);
     }
 
+    //para testear
     public function statsShortUrl($code){
         $url = Url::where("short_code", $code)->first();
         if(!$url){
@@ -58,7 +64,8 @@ class UrlController extends Controller
             'original_url' => $url->original_url,
             'short_code' => $url->short_code,
             'visits' => $url->visits,
-            'expires_at' => $url->expires_at
+            'expires_at' => $url->expires_at,
+            'is_active' => $url->is_active
         ], 201);
     }
 
@@ -87,6 +94,7 @@ class UrlController extends Controller
             return response()->json(['error' => "Not found url"], 404);
         }
         $url->expires_at = now()->addDays(7);
+        $url->is_active = true;
         $url->save();
 
         return response()->json([
@@ -102,6 +110,7 @@ class UrlController extends Controller
             return response()->json(['error' => "Not found url"], 404);
         }
         $url->expires_at = now()->subSecond();
+        $url->is_active = false;
         $url->save();
 
         return response()->json([
