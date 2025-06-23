@@ -49,6 +49,7 @@
                 document.getElementById("btn-login").classList.add("d-none");
                 document.getElementById("btn-register").classList.add("d-none");
                 document.getElementById("btn-logout").classList.remove("d-none");
+                document.getElementById("btn-my-urls").classList.remove("d-none");
             }
 
             document.getElementById("btn-logout").addEventListener("click", async () => {

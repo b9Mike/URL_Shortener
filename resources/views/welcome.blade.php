@@ -253,6 +253,7 @@
                 }
 
                 urls.forEach((url, index) => {
+                    console.log(url.is_active);
                     const estadoBadge = url.is_active ?
                         `<span class="badge bg-success">Activo</span>` :
                         `<span class="badge bg-danger">Desactivado</span>`;

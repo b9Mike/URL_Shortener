@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('visits')->default(0);
             $table->timestamp('expires_at')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_public')->default(true);
             
 
             $table->foreignId('user_id')

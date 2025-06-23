@@ -88,6 +88,22 @@ class UrlController extends Controller
         return response()->json($urls);
     }
 
+    public function getAllUrlByRating(){
+       $urlsPublicas = Url::where('is_public', true)
+            //->where('is_active', true) 
+            ->orderByDesc('visits')
+            ->take(10)
+            ->get()
+            ->map(function ($url) {
+                $url->short_url = url('/') . '/' . $url->short_code;
+                $url->is_active = !$url->expires_at || now()->lessThan($url->expires_at);
+                return $url;
+            });
+
+        return response()->json($urlsPublicas);
+
+    }
+
     public function reactivateUrlByICode($code){
         $url = Url::where("short_code", $code)->first();
         if(!$url){
@@ -115,6 +131,50 @@ class UrlController extends Controller
 
         return response()->json([
             'message' => 'URL successfully deactivated',
+            'expires_at' => $url->expires_at,
+        ], 200);
+
+    }
+
+    public function changeUrlState($code){
+        $url = Url::where("short_code", $code)->first();
+        if(!$url){
+            return response()->json(['error' => "Not found url"], 404);
+        }
+
+        if($url->is_active){
+            $url->expires_at = now()->subSecond();
+            $url->is_active = false;
+        }
+        else{
+            $url->expires_at = now()->addDays(7);
+            $url->is_active = true;
+        }
+        
+        $url->save();
+
+        return response()->json([
+            'message' => 'URL successfully change state',
+            'expires_at' => $url->expires_at,
+        ], 200);
+
+    }
+
+    public function changeUrlPrivacy($code){
+        $url = Url::where("short_code", $code)->first();
+        if(!$url){
+            return response()->json(['error' => "Not found url"], 404);
+        }
+        
+        if($url->is_public)
+            $url->is_public = false;
+        else
+            $url->is_public = true;
+        
+        $url->save();
+
+        return response()->json([
+            'message' => 'URL successfully change privacy',
             'expires_at' => $url->expires_at,
         ], 200);
 

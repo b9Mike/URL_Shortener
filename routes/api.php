@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 Route::post("/login", [AuthController::class, "login"])->name("user.login");
 Route::post("/register", [UserController::class, "createUser"])->name("user.register");
 Route::get("/url/{shortCode}/visits-per-month", [UrlVisitController::class, "visitsPerMonthByShortCode"]);
+Route::get("/urls-by-rating", [UrlController::class, "getAllUrlByRating"])->name("url.by.rating");
 
 //Rutas privada
 Route::middleware([IsUserAuth::class])->group(function () {
@@ -29,5 +30,7 @@ Route::middleware([IsUserAuth::class])->group(function () {
     Route::get("/urls-user", [UrlController::class, "getAllUrlsByUserId"])->name("url.urls.user");
     Route::patch("/reactivate-url/{code}", [UrlController::class, "reactivateUrlByICode"])->name("url.reactivate");
     Route::patch("/deactivate-url/{code}", [UrlController::class, "deactivateUrlByICode"])->name("url.deactivate");
+    Route::patch("/change-state-url/{code}", [UrlController::class, "changeUrlState"])->name("url.state");
+    Route::patch("/change-privacy-url/{code}", [UrlController::class, "changeUrlPrivacy"])->name("url.privacy");
     Route::get("/stats/{code}", [UrlController::class, "statsShortUrl"])->name("url.stats");
 });

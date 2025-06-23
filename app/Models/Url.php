@@ -8,7 +8,7 @@ class Url extends Model
 {
     protected $table = "urls";
 
-    protected $fillable = [ "original_url", "expires_at", "profile_image", "user_id", "is_active"];
+    protected $fillable = [ "original_url", "expires_at", "profile_image", "user_id", "is_active", "is_public"];
 
     public static function generateShortCode(){
         do{
