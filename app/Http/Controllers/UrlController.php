@@ -44,9 +44,10 @@ class UrlController extends Controller
             abort(410, "This URL has expired");
         }
 
-        if($url->password){
-            abort(410, "This URL has password");
+        if ($url->password) {
+            return view('dashboard.check-url', ['code' => $code]);
         }
+
 
         
         UrlVisit::create([
@@ -59,6 +60,17 @@ class UrlController extends Controller
 
         return redirect($url->original_url);
     }
+
+    public function verifyPassword(Request $request, $code){
+        $url = Url::where('short_code', $code)->firstOrFail();
+
+        if (!Hash::check($request->password, $url->password)) {
+            return back()->withErrors(['password' => 'Contraseña incorrecta.']);
+        }
+
+        return redirect($url->original_url);
+    }
+
 
     //para testear
     public function statsShortUrl($code){
@@ -96,7 +108,7 @@ class UrlController extends Controller
 
     public function getAllUrlByRating(){
        $urlsPublicas = Url::where('is_public', true)
-            //->where('is_active', true) 
+            ->where('is_public', true) 
             ->orderByDesc('visits')
             ->take(10)
             ->get()

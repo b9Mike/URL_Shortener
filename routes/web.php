@@ -20,5 +20,10 @@ Route::get('/my-urls', function () {
     return view('dashboard.urls'); 
 })->name('my-urls');
 
+Route::get('/check-url', function () {
+    return view('dashboard.check-url'); 
+})->name('check-url');
+
 Route::get("{code}", [UrlController::class, "redirectToOriginalUrl"])->name("url.redirect");
 Route::post("/short-url", [UrlController::class, "createShortUrl"])->name("url.short");
+Route::post('/verify-password/{code}', [UrlController::class, 'verifyPassword'])->name('verify.password');

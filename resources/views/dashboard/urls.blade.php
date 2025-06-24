@@ -65,11 +65,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- Botón para abrir el modal -->
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        Launch demo modal
-    </button>
 
     <!-- Modal -->
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -241,6 +236,8 @@
                     return;
                 }
 
+                
+
                 urls.forEach((url, index) => {
                     const estadoBadge = url.is_active
                         ? `<span class="badge bg-success">Activo</span>`
@@ -249,6 +246,18 @@
                     const privacyBadge = url.is_public
                         ? `<span class="badge bg-success">Publico</span>`
                         : `<span class="badge bg-danger">Privado</span>`;
+
+                    let passwordBadge;
+                    if(!url.password){
+                        passwordBadge = `
+                            <li><a class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#exampleModal" href="#" data-action="set-password"    data-code="${url.short_code}">Establecer contraseña</a></li>
+                        `
+                    }else{
+                        passwordBadge = `
+                            <li><a class="dropdown-item" href="#" data-action="remove-password" data-code="${url.short_code}">Quitar contraseña</a></li>
+                            <li><a class="dropdown-item" href="#" data-action="view-password"   data-code="${url.short_code}">Ver contraseña</a></li>
+                        `
+                    }
 
                     const row = document.createElement('tr');
                     row.dataset.code = url.short_code;     //  data-code para la fila
@@ -275,9 +284,7 @@
 
                                     <li><hr class="dropdown-divider"></li>
                                     <li class="dropdown-header">Contraseña</li>
-                                    <li><a class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#exampleModal" href="#" data-action="set-password"    data-code="${url.short_code}">Establecer contraseña</a></li>
-                                    <li><a class="dropdown-item" href="#" data-action="remove-password" data-code="${url.short_code}">Quitar contraseña</a></li>
-                                    <li><a class="dropdown-item" href="#" data-action="view-password"   data-code="${url.short_code}">Ver contraseña</a></li>
+                                    ${passwordBadge}
                                 </ul>
                             </div>
                         </td>
