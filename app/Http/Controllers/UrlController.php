@@ -6,6 +6,7 @@ use App\Models\Url;
 use App\Models\UrlVisit;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class UrlController extends Controller
 {
@@ -42,6 +43,11 @@ class UrlController extends Controller
 
             abort(410, "This URL has expired");
         }
+
+        if($url->password){
+            abort(410, "This URL has password");
+        }
+
         
         UrlVisit::create([
             'url_id' => $url->id,
@@ -179,4 +185,41 @@ class UrlController extends Controller
         ], 200);
 
     }
+
+    public function setUrlPassword(Request $request, $code){
+        $url = Url::where("short_code", $code)->first();
+        if(!$url){
+            return response()->json(['error' => "Not found url"], 404);
+        }
+
+        $validated = $request->validate([
+            'password' => 'required|string|min:6|confirmed'
+        ]);
+
+        $url->password = Hash::make($validated['password']);
+
+        $url->save();
+    
+        return response()->json([
+            'success' => "password created successfully"
+        ], 201);
+
+    }
+
+    public function removeUrlPassword($code){
+        $url = Url::where("short_code", $code)->first();
+        if(!$url){
+            return response()->json(['error' => "Not found url"], 404);
+        }
+
+        $url->password = null;
+
+        $url->save();
+    
+        return response()->json([
+            'success' => "password created successfully"
+        ], 201);
+
+    }
+
 }

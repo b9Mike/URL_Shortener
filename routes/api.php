@@ -33,4 +33,7 @@ Route::middleware([IsUserAuth::class])->group(function () {
     Route::patch("/change-state-url/{code}", [UrlController::class, "changeUrlState"])->name("url.state");
     Route::patch("/change-privacy-url/{code}", [UrlController::class, "changeUrlPrivacy"])->name("url.privacy");
     Route::get("/stats/{code}", [UrlController::class, "statsShortUrl"])->name("url.stats");
+    
+    Route::patch("/set-url-password/{code}", [UrlController::class, "setUrlPassword"])->name("set.url.password");
+    Route::patch("/remove-url-password/{code}", [UrlController::class, "removeUrlPassword"])->name("remove.url.password");
 });

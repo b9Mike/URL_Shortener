@@ -1,5 +1,15 @@
 @extends('layouts.app')
 
+@push('styles')
+
+<style>
+    .passwordForm{
+        width: 80%; max-width: 300px;
+    }
+</style>
+
+@endpush
+
 @section('content')
     <div class="row">
         <!-- Url del usuario -->
@@ -55,14 +65,58 @@
             </div>
         </div>
     </div>
+    
+    <!-- Botón para abrir el modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Launch demo modal
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header justify-content-center">
+                    <h5 class="modal-title text-center w-100" id="exampleModalLabel">Generar contraseña para tu URL</h5>
+                    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body d-flex justify-content-center">
+                    <form id="passwordForm" >
+                        <div class="mb-3 text-center">
+                            <label for="password" class="form-label">Ingresa una contraseña</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3 text-center">
+                            <label for="confirm-password" class="form-label">Confirma la contraseña</label>
+                            <input type="password" class="form-control" id="confirm-password" name="confirm-password" required>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="btn-modal-save">Guardar cambios</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
 @endsection
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+
+        let currentCodeForPassword = null;
+
         const token = localStorage.getItem("token");
         if(!token)
             window.location.href = "/login";
+
         
         //funcion para fetch
         async function secureFetch(url, options = {}) {
@@ -221,7 +275,7 @@
 
                                     <li><hr class="dropdown-divider"></li>
                                     <li class="dropdown-header">Contraseña</li>
-                                    <li><a class="dropdown-item" href="#" data-action="set-password"    data-code="${url.short_code}">Establecer contraseña</a></li>
+                                    <li><a class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#exampleModal" href="#" data-action="set-password"    data-code="${url.short_code}">Establecer contraseña</a></li>
                                     <li><a class="dropdown-item" href="#" data-action="remove-password" data-code="${url.short_code}">Quitar contraseña</a></li>
                                     <li><a class="dropdown-item" href="#" data-action="view-password"   data-code="${url.short_code}">Ver contraseña</a></li>
                                 </ul>
@@ -242,8 +296,7 @@
             }
         }
 
-        
-
+        // funcion para cambiar privacidad y estado de la url 
         document.getElementById('urlTableBody').addEventListener('click', async (e) => {
 
             const item = e.target.closest('a.dropdown-item');
@@ -269,6 +322,7 @@
                         });
                         msg = "Cambio de privacidad correctamente.";
                         break;
+                        
                     case 'change-state':
                         res = await secureFetch(`api/change-state-url/${code}`, {
                             method: 'PATCH',
@@ -278,6 +332,22 @@
                         });
                         msg = "Cambio de estado correctamente.";
                         break;
+                    
+                    case 'remove-password':
+                        res = await secureFetch(`api/remove-url-password/${code}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        msg = "Contraseña removida correctamente.";
+                        break;
+                    case 'set-password': 
+                        currentCodeForPassword = code;
+                        return;
+                        break;
+                    default:
+                        return;
                 }
 
                 if (!res.ok) throw new Error("Error en la operación");
@@ -290,6 +360,42 @@
                 alert('Error: ' + err.message);
             }
         });
+
+        // funcion para establecer contraseña 
+        document.getElementById("btn-modal-save").addEventListener("click", async (e) => {
+            e.preventDefault();
+
+            const password = document.getElementById('password').value;
+            const password2 = document.getElementById('confirm-password').value;
+
+            if (!currentCodeForPassword) {
+                alert("No se ha seleccionado una URL válida.");
+                return;
+            }
+
+            try {
+                const res = await secureFetch(`api/set-url-password/${currentCodeForPassword}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        password: password,
+                        password_confirmation: password2
+                    }),
+                });
+
+                if (!res.ok) throw new Error("Error al establecer la contraseña");
+
+                const data = await res.json();
+                alert("Contraseña establecida correctamente.");
+                location.reload();
+                currentCodeForPassword = null;
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
 
 
         // Cargar al iniciar
