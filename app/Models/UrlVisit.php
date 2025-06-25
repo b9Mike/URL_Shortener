@@ -18,4 +18,11 @@ class UrlVisit extends Model
     public function url(){
         return $this->belongsTo(Url::class);
     }
+    protected static function booted()
+    {
+        static::created(function ($visit) {
+            // Incrementa el contador 'visits' de la URL relacionada
+            $visit->url->increment('visits');
+        });
+    }
 }
