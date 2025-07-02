@@ -21,7 +21,7 @@ class UrlFactory extends Factory
             'original_url' => $this->faker->url(),
             'short_code' => Url::generateShortCode(),
             'visits' => 0,
-            'expires_at' => $this->faker->optional()->dateTimeBetween('now', '+1 month'),
+            'expires_at' => $this->faker->dateTimeBetween('now', '+1 month'),
             'is_active' => $this->faker->boolean(90),
             'is_public' => $this->faker->boolean(80),
             'password' => null,

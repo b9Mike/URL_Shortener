@@ -49,6 +49,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        <div id="paginationContainer" class="mt-3 d-flex justify-content-center"></div>
                     </div>
                 </div>
             </div>
@@ -213,95 +214,110 @@
             });
         }
 
+
+        function mostrarPaginacion(data) {
+            const container = document.getElementById("paginationContainer");
+            container.innerHTML = "";
+
+            if (!data.links) return;
+
+            data.links.forEach(link => {
+                const button = document.createElement("button");
+                button.classList.add("btn", "btn-sm", "mx-1");
+                button.innerHTML = link.label.replace("&laquo;", "«").replace("&raquo;", "»");
+
+                if (link.active) button.classList.add("btn-primary");
+                else button.classList.add("btn-outline-primary");
+
+                button.disabled = !link.url;
+
+                button.addEventListener("click", () => {
+                    if (link.url) cargarUrls(link.url);
+                });
+
+                container.appendChild(button);
+            });
+        }
+
+
         //traer urls
-        async function cargarUrls() {
+        async function cargarUrls(pageUrl = "{{ route('url.urls.user') }}") {
             const token = localStorage.getItem("token");
-
             const tableBody = document.getElementById("urlTableBody");
-            tableBody.innerHTML = ""; // Limpiar antes de cargar
+            tableBody.innerHTML = "";
 
-            if (token) {
-                const res = await secureFetch("{{ route('url.urls.user') }}", {
-                    method: "GET"
-                });
-                const urls = await res.json();
-
-
-                if (urls.length === 0) {
-                    tableBody.innerHTML = `
-                                <tr>
-                                    <td colspan="5" class="text-center">No se han encontrado registros</td>
-                                </tr>
-                            `;
-                    return;
-                }
-
-                
-
-                urls.forEach((url, index) => {
-                    const estadoBadge = url.is_active
-                        ? `<span class="badge bg-success">Activo</span>`
-                        : `<span class="badge bg-danger">Desactivado</span>`;
-
-                    const privacyBadge = url.is_public
-                        ? `<span class="badge bg-success">Publico</span>`
-                        : `<span class="badge bg-danger">Privado</span>`;
-
-                    let passwordBadge;
-                    if(!url.password){
-                        passwordBadge = `
-                            <li><a class="dropdown-item"  data-bs-toggle="modal" data-bs-target="#exampleModal" href="#" data-action="set-password"    data-code="${url.short_code}">Establecer contraseña</a></li>
-                        `
-                    }else{
-                        passwordBadge = `
-                            <li><a class="dropdown-item" href="#" data-action="remove-password" data-code="${url.short_code}">Quitar contraseña</a></li>
-                            <li><a class="dropdown-item" href="#" data-action="view-password"   data-code="${url.short_code}">Ver contraseña</a></li>
-                        `
-                    }
-
-                    const row = document.createElement('tr');
-                    row.dataset.code = url.short_code;     //  data-code para la fila
-
-                    row.innerHTML = `
-                        <td><a href="${url.short_url}" target="_blank">${url.short_url}</a></td>
-                        <td>${estadoBadge}</td>
-                        <td>${url.visits}</td>
-                        <td>${privacyBadge}</td>
-                        <td class="text-end">
-                            <div class="dropdown position-static">
-                                <button class="btn btn-sm btn-primary dropdown-toggle" type="button"
-                                        id="dropdownMenu${index}" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Acciones
-                                </button>
-
-                                <ul class="dropdown-menu" aria-labelledby="dropdownMenu${index}">
-                                    <li class="dropdown-header">Estado</li>
-                                    <li><a class="dropdown-item reactivar-btn" href="#" data-action="change-state"   data-code="${url.short_code}">Activar/Desactivar</a></li>
-
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li class="dropdown-header">Privacidad</li>
-                                    <li><a class="dropdown-item" href="#" data-action="change-privacy"  data-code="${url.short_code}">Público/Privado</a></li>
-
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li class="dropdown-header">Contraseña</li>
-                                    ${passwordBadge}
-                                </ul>
-                            </div>
-                        </td>
-                    `;
-
-                    tableBody.appendChild(row);
-                });
-
-            } else {
+            if (!token) {
                 tableBody.innerHTML = `
-                                <tr>
-                                    <td colspan="5" class="text-center">Inicia sesión para ver tus urls</td>
-                                </tr>
-                            `;
+                    <tr>
+                        <td colspan="5" class="text-center">Inicia sesión para ver tus urls</td>
+                    </tr>`;
                 return;
             }
+
+            const res = await secureFetch(pageUrl, { method: "GET" });
+            const json = await res.json();
+            const urls = json.data;
+
+            if (urls.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center">No se han encontrado registros</td>
+                    </tr>`;
+                return;
+            }
+
+            urls.forEach((url, index) => {
+                const estadoBadge = url.is_active
+                    ? `<span class="badge bg-success">Activo</span>`
+                    : `<span class="badge bg-danger">Desactivado</span>`;
+
+                const privacyBadge = url.is_public
+                    ? `<span class="badge bg-success">Público</span>`
+                    : `<span class="badge bg-danger">Privado</span>`;
+
+                let passwordBadge;
+                if (!url.password) {
+                    passwordBadge = `
+                        <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal" href="#" data-action="set-password" data-code="${url.short_code}">Establecer contraseña</a></li>`;
+                } else {
+                    passwordBadge = `
+                        <li><a class="dropdown-item" href="#" data-action="remove-password" data-code="${url.short_code}">Quitar contraseña</a></li>
+                        <li><a class="dropdown-item" href="#" data-action="view-password" data-code="${url.short_code}">Ver contraseña</a></li>`;
+                }
+
+                const row = document.createElement("tr");
+                row.dataset.code = url.short_code;
+                row.innerHTML = `
+                    <td><a href="${url.short_url}" target="_blank">${url.short_url}</a></td>
+                    <td>${estadoBadge}</td>
+                    <td>${url.visits}</td>
+                    <td>${privacyBadge}</td>
+                    <td class="text-end">
+                        <div class="dropdown position-static">
+                            <button class="btn btn-sm btn-primary dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown">
+                                Acciones
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li class="dropdown-header">Estado</li>
+                                <li><a class="dropdown-item reactivar-btn" href="#" data-action="change-state" data-code="${url.short_code}">Activar/Desactivar</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="dropdown-header">Privacidad</li>
+                                <li><a class="dropdown-item" href="#" data-action="change-privacy" data-code="${url.short_code}">Público/Privado</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="dropdown-header">Contraseña</li>
+                                ${passwordBadge}
+                            </ul>
+                        </div>
+                    </td>`;
+
+                tableBody.appendChild(row);
+            });
+
+            // Agregar paginación
+            mostrarPaginacion(json);
         }
+
 
         // funcion para cambiar privacidad y estado de la url 
         document.getElementById('urlTableBody').addEventListener('click', async (e) => {

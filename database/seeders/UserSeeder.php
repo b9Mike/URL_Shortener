@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
             'name' => 'Admin',
             'email' => 'admin@example.com',
             'role' => 'admin',
-            'password' => Hash::make('password'), // usa bcrypt
+            'password' => Hash::make('password'), 
         ]);
 
         User::factory()->count(5)->create();

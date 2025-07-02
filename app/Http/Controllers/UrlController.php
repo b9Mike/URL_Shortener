@@ -61,6 +61,7 @@ class UrlController extends Controller
         return redirect($url->original_url);
     }
 
+    //verificar contraseña de las url privadas
     public function verifyPassword(Request $request, $code){
         $url = Url::where('short_code', $code)->firstOrFail();
 
@@ -98,11 +99,19 @@ class UrlController extends Controller
 
     public function getAllUrlsByUserId(){
         $user = Auth::user();
-        $urls = Url::where('user_id', $user->id)->get()->map(function ($url) {
+        $perPage = 10;
+
+        $urls = Url::where('user_id', $user->id)
+            ->latest()
+            ->paginate($perPage);
+
+        // Transformar cada URL
+        $urls->getCollection()->transform(function ($url) {
             $url->short_url = url('/') . '/' . $url->short_code;
             $url->is_active = !$url->expires_at || now()->lessThan($url->expires_at);
             return $url;
         });
+
         return response()->json($urls);
     }
 
