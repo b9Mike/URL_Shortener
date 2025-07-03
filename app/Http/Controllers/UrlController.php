@@ -168,6 +168,10 @@ class UrlController extends Controller
         if(!$url){
             return response()->json(['error' => "Not found url"], 404);
         }
+        
+        if ($url->expires_at && now()->greaterThan($url->expires_at)) {
+            $url->is_active = false;
+        }
 
         if($url->is_active){
             $url->expires_at = now()->subSecond();

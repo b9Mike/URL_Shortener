@@ -239,7 +239,6 @@
             });
         }
 
-
         //traer urls
         async function cargarUrls(pageUrl = "{{ route('url.urls.user') }}") {
             const token = localStorage.getItem("token");
