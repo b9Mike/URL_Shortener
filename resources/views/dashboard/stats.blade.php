@@ -179,15 +179,16 @@
 
             urls.forEach((url, index) => {
                 const estadoBadge = url.is_active ?
-                    `<span class="badge bg-success">Activo</span>` :
-                    `<span class="badge bg-danger">Desactivado</span>`;
+                    `<span class="badge badge-success-soft">Activo</span>` :
+                    `<span class="badge badge-danger-soft">Desactivo</span>`;
 
                 const row = document.createElement("tr");
                 row.setAttribute('data-code', url.short_code);
 
                 row.innerHTML = `
                             <td>
-                                <a href="${url.short_url}" target="_blank">${url.short_url}</a>
+                                <span class="badge badge-source">${url.domain}</span><br>
+                                <a href="${url.short_url}" target="_blank" >${url.short_url}</a>
                             </td>
                             <td>${estadoBadge}</td>
                             <td>${url.visits}</td>

@@ -91,8 +91,8 @@
                 </div>
 
                 <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" id="btn-modal-save">Guardar cambios</button>
+                    <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary-custom" id="btn-modal-save">Guardar cambios</button>
                 </div>
 
             </div>
@@ -267,33 +267,37 @@
 
             urls.forEach((url, index) => {
                 const estadoBadge = url.is_active
-                    ? `<span class="badge bg-success">Activo</span>`
-                    : `<span class="badge bg-danger">Desactivado</span>`;
+                    ? `<span class="badge badge-success-soft">Activo</span>`
+                    : `<span class="badge badge-danger-soft">Desactivo</span>`;
 
                 const privacyBadge = url.is_public
-                    ? `<span class="badge bg-success">Público</span>`
-                    : `<span class="badge bg-danger">Privado</span>`;
+                    ? `<span class="badge badge-success-soft">Público</span>`
+                    : `<span class="badge badge-private">Privado</span>`;
 
-                let passwordBadge;
+                let passwordBadge, keyIcon = "";
                 if (!url.password) {
                     passwordBadge = `
                         <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#exampleModal" href="#" data-action="set-password" data-code="${url.short_code}">Establecer contraseña</a></li>`;
+                    
                 } else {
                     passwordBadge = `
-                        <li><a class="dropdown-item" href="#" data-action="remove-password" data-code="${url.short_code}">Quitar contraseña</a></li>
-                        <li><a class="dropdown-item" href="#" data-action="view-password" data-code="${url.short_code}">Ver contraseña</a></li>`;
+                        <li><a class="dropdown-item" href="#" data-action="remove-password" data-code="${url.short_code}">Quitar contraseña</a></li>`;
+                        keyIcon = `<i class="bi bi-key fs-4 ms-2"></i>`
                 }
 
                 const row = document.createElement("tr");
                 row.dataset.code = url.short_code;
                 row.innerHTML = `
-                    <td><a href="${url.short_url}" target="_blank">${url.short_url}</a></td>
+                    <td>
+                        <span class="badge badge-source">${url.domain}</span>${keyIcon}<br>
+                        <a href="${url.short_url}" target="_blank" >${url.short_url}</a>
+                    </td>
                     <td>${estadoBadge}</td>
                     <td>${url.visits}</td>
                     <td>${privacyBadge}</td>
                     <td class="text-end">
                         <div class="dropdown position-static">
-                            <button class="btn btn-sm btn-primary dropdown-toggle" type="button"
+                            <button class="btn btn-sm btn-secondary-custom dropdown-toggle" type="button"
                                     data-bs-toggle="dropdown">
                                 Acciones
                             </button>

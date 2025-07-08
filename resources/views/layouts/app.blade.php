@@ -28,6 +28,71 @@
             height: 50px;
         }
 
+         .btn-primary-custom {
+            background-color: #7b80d6;
+            color: white;
+            border: none;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #5a5ed1;
+        }
+
+        .btn-secondary-custom {
+            background-color: #aaaed9;
+            color: white;
+            border: none;
+        }
+
+        .btn-secondary-custom:hover {
+            background-color: #8f93c6;
+        }
+
+        .btn-register {
+            background-color: #d97bb3;
+            color: white;
+            border: none;
+        }
+
+        .btn-register:hover {
+            background: linear-gradient(to right, #c5acc5, #b0b5e3);
+        }
+
+        .badge-success-soft {
+            background-color: #6cc9a1;
+            color: white;
+        }
+
+        .badge-danger-soft {
+            background-color: #e96c6c;
+            color: white;
+        }
+
+        .badge-private {
+            background-color: #666;
+            color: white;
+        }
+
+        a {
+            color: #6f75d9;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: #4f54c3;
+            text-decoration: underline;
+        }
+        .badge-source {
+            background-color: #dad9f3;
+            color: #4b4a6a;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
         
     </style>
     @stack('styles')

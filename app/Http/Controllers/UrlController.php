@@ -68,7 +68,7 @@ class UrlController extends Controller
         if (!Hash::check($request->password, $url->password)) {
             return back()->withErrors(['password' => 'Contraseña incorrecta.']);
         }
-
+        $url->increment("visits");
         return redirect($url->original_url);
     }
 
@@ -109,6 +109,9 @@ class UrlController extends Controller
         $urls->getCollection()->transform(function ($url) {
             $url->short_url = url('/') . '/' . $url->short_code;
             $url->is_active = !$url->expires_at || now()->lessThan($url->expires_at);
+
+            //Extraer el dominio de la URL original
+            $url->domain = parse_url($url->original_url, PHP_URL_HOST);
             return $url;
         });
 
@@ -128,38 +131,6 @@ class UrlController extends Controller
             });
 
         return response()->json($urlsPublicas);
-
-    }
-
-    public function reactivateUrlByICode($code){
-        $url = Url::where("short_code", $code)->first();
-        if(!$url){
-            return response()->json(['error' => "Not found url"], 404);
-        }
-        $url->expires_at = now()->addDays(7);
-        $url->is_active = true;
-        $url->save();
-
-        return response()->json([
-            'message' => 'URL successfully reactivated',
-            'expires_at' => $url->expires_at,
-        ], 200);
-
-    }
-
-    public function deactivateUrlByICode($code){
-        $url = Url::where("short_code", $code)->first();
-        if(!$url){
-            return response()->json(['error' => "Not found url"], 404);
-        }
-        $url->expires_at = now()->subSecond();
-        $url->is_active = false;
-        $url->save();
-
-        return response()->json([
-            'message' => 'URL successfully deactivated',
-            'expires_at' => $url->expires_at,
-        ], 200);
 
     }
 

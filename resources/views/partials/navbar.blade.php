@@ -20,13 +20,13 @@
             </ul>
 
             <div class="d-flex">
-                <a href="{{ route('login') }}" id="btn-login" class="btn btn-outline-primary me-2">
+                <a href="{{ route('login') }}" id="btn-login" class="btn btn-primary-custom me-2">
                     <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
                 </a>
-                <a href="{{ route('login') }}" id="btn-register" class="btn btn-outline-success me-2">
+                <a href="{{ route('login') }}" id="btn-register" class="btn btn-register me-2">
                     <i class="bi bi-person-plus"></i> Registrarse
                 </a>
-                <a href="#" id="btn-logout" class="btn btn-outline-danger d-none">
+                <a href="#" id="btn-logout" class="btn btn-secondary-custom d-none">
                     <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                 </a>
             </div>
