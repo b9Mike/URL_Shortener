@@ -9,13 +9,13 @@
         <div class="collapse navbar-collapse" id="navbarContent">
             <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('top-urls') }}"><i class="bi bi-bar-chart-line-fill"></i> Más visitadas</a>
+                    <a class="nav-link btn-primary-custom-nav" href="{{ route('top-urls') }}"><i class="bi bi-bar-chart-line-fill"></i> Más visitadas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link d-none" id="btn-my-urls" href="/my-urls"><i class="bi bi-link-45deg"></i> Mis URLs</a>
+                    <a class="nav-link  btn-primary-custom-nav d-none" id="btn-my-urls" href="/my-urls"><i class="bi bi-link-45deg"></i> Mis URLs</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/"><i class="bi bi-plus-circle"></i> Nueva URL</a>
+                    <a class="nav-link btn-primary-custom-nav" href="/"><i class="bi bi-plus-circle"></i> Nueva URL</a>
                 </li>
             </ul>
 

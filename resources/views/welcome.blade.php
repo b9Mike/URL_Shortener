@@ -8,24 +8,33 @@
                 <div class="card p-4 shadow">
                     <h1 class="card-title text-center">Acortador de URL</h1>
 
-                    <form action="" method="" id="urlForm">
+                    <form id="urlForm" >
                         <div class="mb-3">
-                            <label for="original_url" class="form-label">Ingresa tu URL</label>
-                            <input type="url" class="form-control input-url" id="original_url" name="original_url" required
-                                placeholder="https://ejemplo.com">
+                            <label for="original_url" class="form-label fw-bold fs-5 text-center d-block">Ingresa tu URL</label>
+                            <div class="input-group">
+                                <input type="url" class="form-control form-control-lg" id="original_url" name="original_url"
+                                    required placeholder="https://ejemplo.com">
+                                <button type="submit" class="btn btn-lg btn-primary-custom" aria-label="Acortar URL">Acortar</button>
+                            </div>
                         </div>
-                        <button type="submit" class="btn w-100 btn-primary-custom">Acortar</button>
-                    </form>
 
+                        <div class="mb-3 text-center">
+                            <div class="g-recaptcha d-inline-block" data-sitekey="6Le8rX0rAAAAAEZ-r7xIsj7pTlOsAETMtvfby5Qu"></div>
+                        </div>
+
+                    </form>
                     <div id="resultado" class="mt-3 text-center text-success" style="display:none;"></div>
+
                 </div>
             </div>
         </div>
+
 
     </div>
 @endsection
 
 @push('scripts')
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         //funcion para fetch
@@ -59,40 +68,67 @@
             const url = document.getElementById('original_url').value;
 
             try {
+                const captchaToken = grecaptcha.getResponse();
+
+                if (!captchaToken) {
+                    alert("Por favor completa el reCAPTCHA.");
+                    return;
+                }
+
                 const headers = {
                     "Content-Type": "application/json",
                     "Accept": "application/json",
                 };
 
+                const payload = {
+                    original_url: url,
+                    'g-recaptcha-response': captchaToken
+                };
+
                 let res;
-                // Si hay token JWT, usa Authorization y omite CSRF
+
                 if (token) {
                     headers["Authorization"] = "Bearer " + token;
                     res = await fetch("{{ route('url.short.api') }}", {
                         method: 'POST',
                         headers: headers,
-                        body: JSON.stringify({
-                            original_url: url
-                        }),
+                        body: JSON.stringify(payload),
                     });
                 } else {
-                    // Si no hay token, la sesión es web y necesita CSRF
                     headers["X-CSRF-TOKEN"] = '{{ csrf_token() }}';
-
                     res = await fetch("{{ route('url.short') }}", {
                         method: 'POST',
                         headers: headers,
-                        body: JSON.stringify({
-                            original_url: url
-                        }),
+                        body: JSON.stringify(payload),
                     });
                 }
 
                 const data = await res.json();
 
+                if (!res.ok) {
+                    alert(data.error || "Ocurrió un error con el captcha o la URL.");
+                    return;
+                }
+
+                // Mostrar resultado
+                document.getElementById('resultado').innerHTML = `
+                <div class="alert alert-success d-flex justify-content-between align-items-center" role="alert">
+                    <div>
+                    Tu URL acortada es: <a href="${data.short_url}" target="_blank">${data.short_url}</a>
+                    </div>
+                    <button id="copyBtn" class="btn btn-sm btn-outline-success">Copiar</button>
+                </div>
+                `;
                 document.getElementById('resultado').style.display = 'block';
-                document.getElementById('resultado').innerHTML =
-                    `Tu URL acortada es: <a href="${data.short_url}" target="_blank">${data.short_url}</a>`;
+
+                document.getElementById('copyBtn').addEventListener('click', () => {
+                    navigator.clipboard.writeText(data.short_url).then(() => {
+                        alert('URL copiada al portapapeles');
+                    });
+                });
+
+
+                grecaptcha.reset(); // 🔁 reinicia el captcha para otro intento
 
             } catch (error) {
                 console.error('Ocurrió un error:', error);

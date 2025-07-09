@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,11 +24,22 @@
             background: linear-gradient(to right, #c5acc5, #bab1d2, #b0b5e3);
         }
 
+        .btn-primary-custom-nav {
+            color: rgb(109, 103, 103);
+            text-decoration: none;
+        }
+
+        .btn-primary-custom-nav:hover {
+            color: #a5a5af;
+            text-decoration: none;
+        }
+
+
         .input-url{
             height: 50px;
         }
 
-         .btn-primary-custom {
+        .btn-primary-custom {
             background-color: #7b80d6;
             color: white;
             border: none;

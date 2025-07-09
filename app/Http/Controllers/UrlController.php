@@ -7,16 +7,38 @@ use App\Models\UrlVisit;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 
 class UrlController extends Controller
 {
     public function createShortUrl(Request $request){
         $request->validate([
-            'original_url' => "required"
+            'original_url' => 'required|url',
+            'g-recaptcha-response' => 'required',
         ]);
+
+        //Validar reCAPTCHA con Google
+        $recaptchaResponse = $request->input('g-recaptcha-response');
+
+        $verify = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => env('RECAPTCHA_SECRET'),
+            'response' => $recaptchaResponse,
+            'remoteip' => $request->ip(),
+        ]);
+
+        $recaptcha = $verify->json();
+
+        if (!isset($recaptcha['success']) || !$recaptcha['success']) {
+            return response()->json([
+                'error' => 'Verificación reCAPTCHA fallida. Intenta de nuevo.'
+            ], 422);
+        }
+
+        // Buscar o crear la URL
         $url = Url::where("original_url", $request->original_url)->first();
         $user = Auth::user();
-        if(!$url){
+
+        if (!$url) {
             $shortCode = Url::generateShortCode();
             $url = new Url();
             $url->original_url = $request->original_url;
@@ -25,8 +47,9 @@ class UrlController extends Controller
             $url->user_id = $user ? $user->id : null;
             $url->save();
         }
+
         return response()->json([
-            'short_url' => url("/")."/".$url->short_code
+            'short_url' => url('/') . '/' . $url->short_code
         ]);
     }
 
