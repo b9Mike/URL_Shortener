@@ -64,7 +64,7 @@ class UrlController extends Controller
                 $url->save();
             }
 
-            abort(410, "This URL has expired");
+            return view('dashboard.not-found-url');
         }
 
         if ($url->password) {

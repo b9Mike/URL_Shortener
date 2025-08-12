@@ -24,6 +24,10 @@ Route::get('/check-url', function () {
     return view('dashboard.check-url'); 
 })->name('check-url');
 
+Route::get('/not-found-url', function () {
+    return view('dashboard.not-found-url'); 
+})->name('not-found-url');
+
 Route::get("{code}", [UrlController::class, "redirectToOriginalUrl"])->name("url.redirect");
 Route::post("/short-url", [UrlController::class, "createShortUrl"])->name("url.short");
 Route::post('/verify-password/{code}', [UrlController::class, 'verifyPassword'])->name('verify.password');

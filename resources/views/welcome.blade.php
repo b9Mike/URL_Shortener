@@ -112,12 +112,12 @@
 
                 // Mostrar resultado
                 document.getElementById('resultado').innerHTML = `
-                <div class="alert alert-success d-flex justify-content-between align-items-center" role="alert">
-                    <div>
-                    Tu URL acortada es: <a href="${data.short_url}" target="_blank">${data.short_url}</a>
+                    <div class="alert alert-success d-flex justify-content-between align-items-center" role="alert">
+                        <div>
+                        Tu URL acortada es: <a href="${data.short_url}" target="_blank">${data.short_url}</a>
+                        </div>
+                        <button id="copyBtn" class="btn btn-sm btn-outline-success">Copiar</button>
                     </div>
-                    <button id="copyBtn" class="btn btn-sm btn-outline-success">Copiar</button>
-                </div>
                 `;
                 document.getElementById('resultado').style.display = 'block';
 
@@ -128,7 +128,7 @@
                 });
 
 
-                grecaptcha.reset(); // 🔁 reinicia el captcha para otro intento
+                grecaptcha.reset(); 
 
             } catch (error) {
                 console.error('Ocurrió un error:', error);
