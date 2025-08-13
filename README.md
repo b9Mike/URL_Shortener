@@ -21,7 +21,6 @@ Un sistema para acortar enlaces hecho con **Laravel**, con soporte para autentic
 2. Instala las dependencias de Laravel:
     ```bash
     composer install
-    npm install
 
 3. Copia el archivo .env.example y renómbralo a .env:
     ```bash
